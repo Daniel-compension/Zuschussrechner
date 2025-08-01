@@ -1,14 +1,20 @@
 import streamlit as st
 from PIL import Image
 
-st.set_page_config(page_title="Compension Zuschussrechner", layout="centered")
+# Seiteneinstellungen
+st.set_page_config(
+    page_title="Zuschussrechner | COMPENSION",
+    page_icon="💼",
+    layout="centered"
+)
 
 # Logo anzeigen
 logo = Image.open("COMPENSION 2025 - transparenter Hintergrund.png")
 st.image(logo, use_column_width=True)
 
+# Titel & Beschreibung
 st.markdown("## 💼 Compension Zuschussrechner")
-st.markdown("Berechnet Arbeitgeberzuschuss und Entgeltumwandlung.")
+st.markdown("Berechnet den Arbeitgeberzuschuss und den Entgeltumwandlungsbetrag basierend auf der aktuellen Beitragsbemessungsgrenze.")
 st.markdown("---")
 
 # Eingaben
@@ -39,9 +45,10 @@ begrenzen = st.checkbox("Zuschuss auf 4% BBG begrenzen")
 st.markdown("---")
 if st.button("🧮 Berechnen"):
     ag_zuschuss_prozent_decimal = ag_zuschuss_prozent / 100
+    bbg_monatlich = round((bbg * 0.04) / 12, 2)
 
     if begrenzen:
-        max_bemessung = min(gesamtbeitrag, round((bbg * 0.04) / 12, 2))
+        max_bemessung = min(gesamtbeitrag, bbg_monatlich)
         x = max_bemessung / (1 + ag_zuschuss_prozent_decimal)
         ag_zuschuss_euro = x * ag_zuschuss_prozent_decimal
         entgeltumwandlung = gesamtbeitrag - ag_zuschuss_euro - avwl
@@ -56,7 +63,10 @@ if st.button("🧮 Berechnen"):
         entgeltumwandlung = gesamtbeitrag - ag_zuschuss_euro - avwl
 
     st.success("✅ Ergebnis")
-    st.metric("AG-Zuschuss (€)", f"{ag_zuschuss_euro:.2f}")
-    st.metric("Entgeltumwandlung (€)", f"{entgeltumwandlung:.2f}")
-    st.metric("AVWL (€)", f"{avwl:.2f}")
-    st.metric("AG-Zuschuss (%)", f"{ag_zuschuss_prozent:.2f}%")
+    col1, col2 = st.columns(2)
+    with col1:
+        st.metric("AG-Zuschuss (€)", f"{ag_zuschuss_euro:.2f}")
+        st.metric("AVWL (€)", f"{avwl:.2f}")
+    with col2:
+        st.metric("Entgeltumwandlung (€)", f"{entgeltumwandlung:.2f}")
+        st.metric("AG-Zuschuss (%)", f"{ag_zuschuss_prozent:.2f}%")
