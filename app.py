@@ -1,39 +1,43 @@
 import streamlit as st
+from PIL import Image
 
 st.set_page_config(page_title="Compension Zuschussrechner", layout="centered")
 
-st.title("💼 Compension Zuschussrechner")
+# Logo anzeigen
+logo = Image.open("COMPENSION 2025 - transparenter Hintergrund.png")
+st.image(logo, use_column_width=True)
 
-# Eingabe der BBG
-bbg = st.number_input("Beitragsbemessungsgrenze (jährlich in €)", value=96600)
+st.markdown("## 💼 Compension Zuschussrechner")
+st.markdown("Berechnet Arbeitgeberzuschuss und Entgeltumwandlung.")
+st.markdown("---")
 
-# Eingabe des Gesamtbeitrags
-gesamtbeitrag = st.number_input("Gesamtbeitrag", value=0.0, step=10.0, format="%.2f")
+# Eingaben
+st.subheader("📥 Eingaben")
 
-# AG-Zuschuss Auswahl
-ag_zuschuss_optionen = ["15%", "20%", "30%", "Individuell"]
-ag_zuschuss_wahl = st.selectbox("AG-Zuschuss", ag_zuschuss_optionen, index=1)
+bbg = st.number_input("Beitragsbemessungsgrenze (jährlich in €)", value=96600.00, step=100.0, format="%.2f")
+gesamtbeitrag = st.number_input("Gesamtbeitrag (€)", value=0.0, step=10.0, format="%.2f")
+
+col1, col2 = st.columns(2)
+with col1:
+    ag_zuschuss_wahl = st.selectbox("AG-Zuschuss", ["15%", "20%", "30%", "Individuell"], index=1)
+with col2:
+    avwl_wahl = st.selectbox("AVWL", ["0,00 €", "13,29 €", "26,59 €", "40 €", "Sonstige"], index=2)
 
 if ag_zuschuss_wahl == "Individuell":
-    ag_zuschuss_prozent = st.number_input("Individueller AG-Zuschuss in %", value=20.0)
+    ag_zuschuss_prozent = st.number_input("Individueller AG-Zuschuss (%)", value=20.0)
 else:
     ag_zuschuss_prozent = float(ag_zuschuss_wahl.strip('%'))
 
-# AVWL Auswahl
-avwl_optionen = ["0,00 €", "13,29 €", "26,59 €", "40 €", "Sonstige"]
-avwl_wahl = st.selectbox("AVWL", avwl_optionen, index=2)
-
 if avwl_wahl == "Sonstige":
-    avwl = st.number_input("Individueller AVWL in €", value=0.0)
+    avwl = st.number_input("Individueller AVWL (€)", value=0.0)
 else:
     avwl = float(avwl_wahl.replace("€", "").replace(",", ".").strip())
 
-# Optionen
-zuschuss_auf_avwl = st.checkbox("AG-Zuschuss auf AVWL rechnen", value=False)
-begrenzen = st.checkbox("Zuschuss auf 4% BBG begrenzen", value=False)
+zuschuss_auf_avwl = st.checkbox("AG-Zuschuss auf AVWL rechnen")
+begrenzen = st.checkbox("Zuschuss auf 4% BBG begrenzen")
 
-# Ergebnis anzeigen
-if st.button("Berechnen"):
+st.markdown("---")
+if st.button("🧮 Berechnen"):
     ag_zuschuss_prozent_decimal = ag_zuschuss_prozent / 100
 
     if begrenzen:
@@ -52,7 +56,7 @@ if st.button("Berechnen"):
         entgeltumwandlung = gesamtbeitrag - ag_zuschuss_euro - avwl
 
     st.success("✅ Ergebnis")
-    st.write(f"**AG-Zuschuss:** {ag_zuschuss_euro:.2f} €")
-    st.write(f"**Entgeltumwandlung:** {entgeltumwandlung:.2f} €")
-    st.write(f"**AVWL:** {avwl:.2f} €")
-    st.write(f"**AG-Zuschuss (%):** {ag_zuschuss_prozent:.2f}%")
+    st.metric("AG-Zuschuss (€)", f"{ag_zuschuss_euro:.2f}")
+    st.metric("Entgeltumwandlung (€)", f"{entgeltumwandlung:.2f}")
+    st.metric("AVWL (€)", f"{avwl:.2f}")
+    st.metric("AG-Zuschuss (%)", f"{ag_zuschuss_prozent:.2f}%")
