@@ -8,19 +8,40 @@ st.set_page_config(
     layout="centered"
 )
 
-# Logo anzeigen
+# Logo
 logo = Image.open("COMPENSION 2025 - transparenter Hintergrund.png")
 st.image(logo, use_column_width=True)
 
+# Initialwerte setzen
+if "bbg" not in st.session_state:
+    st.session_state.bbg = None
+if "bbg_mode" not in st.session_state:
+    st.session_state.bbg_mode = True  # True = Eingabe sichtbar
+
+# Eingabe der BBG (einmalig oder bei manuellem Wunsch)
+if st.session_state.bbg is None or st.session_state.bbg_mode:
+    st.subheader("🔧 Beitragsbemessungsgrenze erfassen")
+    bbg_input = st.number_input("Beitragsbemessungsgrenze (jährlich in €)", value=96600.0, step=100.0, format="%.2f")
+    if st.button("✅ Speichern"):
+        st.session_state.bbg = bbg_input
+        st.session_state.bbg_mode = False
+        st.experimental_rerun()
+    st.stop()
+
+# Änderung ermöglichen
+with st.expander("⚙️ Einstellungen"):
+    if st.button("BBG ändern"):
+        st.session_state.bbg_mode = True
+        st.experimental_rerun()
+
 # Titel & Beschreibung
 st.markdown("## 💼 Compension Zuschussrechner")
-st.markdown("Berechnet den Arbeitgeberzuschuss und den Entgeltumwandlungsbetrag basierend auf der aktuellen Beitragsbemessungsgrenze.")
+st.markdown("Berechnet den Arbeitgeberzuschuss und den Entgeltumwandlungsbetrag basierend auf dem Gesamtbeitrag.")
 st.markdown("---")
 
 # Eingaben
 st.subheader("📥 Eingaben")
 
-bbg = st.number_input("Beitragsbemessungsgrenze (jährlich in €)", value=96600.00, step=100.0, format="%.2f")
 gesamtbeitrag = st.number_input("Gesamtbeitrag (€)", value=0.0, step=10.0, format="%.2f")
 
 col1, col2 = st.columns(2)
@@ -45,7 +66,7 @@ begrenzen = st.checkbox("Zuschuss auf 4% BBG begrenzen")
 st.markdown("---")
 if st.button("🧮 Berechnen"):
     ag_zuschuss_prozent_decimal = ag_zuschuss_prozent / 100
-    bbg_monatlich = round((bbg * 0.04) / 12, 2)
+    bbg_monatlich = round((st.session_state.bbg * 0.04) / 12, 2)
 
     if begrenzen:
         max_bemessung = min(gesamtbeitrag, bbg_monatlich)
